@@ -73,6 +73,12 @@ public abstract class CarInfoManager implements CarManagerBase {
     public abstract @Nullable String getVehicleId() throws CarNotConnectedException;
 
     /**
+     * Return the fuel capacity.
+     * @return null if information is not available.
+     */
+    public abstract @Nullable String getFuelCapacity() throws CarNotConnectedException;
+
+    /**
      * Return manufacturer of the head unit.
      * @return null if information is not available.
      */

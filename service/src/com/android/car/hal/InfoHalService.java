@@ -15,10 +15,13 @@
  */
 package com.android.car.hal;
 
+import static java.lang.Integer.toHexString;
+
 import android.car.CarInfoManager;
 import android.hardware.automotive.vehicle.V2_0.VehiclePropConfig;
 import android.hardware.automotive.vehicle.V2_0.VehiclePropValue;
 import android.hardware.automotive.vehicle.V2_0.VehicleProperty;
+import android.hardware.automotive.vehicle.V2_0.VehiclePropertyType;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -63,6 +66,9 @@ public class InfoHalService extends HalServiceBase {
                 case VehicleProperty.INFO_MODEL_YEAR:
                     readPropertyToBundle(p.prop, CarInfoManager.BASIC_INFO_KEY_MODEL_YEAR);
                     break;
+                case VehicleProperty.INFO_FUEL_CAPACITY:
+                    readPropertyToBundle(p.prop, CarInfoManager.KEY_FUEL_CAPACITY);
+                    break;
                 default: // not supported
                     break;
             }
@@ -73,7 +79,23 @@ public class InfoHalService extends HalServiceBase {
     private void readPropertyToBundle(int prop, String key) {
         String value = "";
         try {
-            value = mHal.get(String.class, prop);
+            VehiclePropValue propValue = mHal.get(prop);
+            if (propValue != null) {
+                int dataType = prop & VehiclePropertyType.MASK;
+                switch (dataType) {
+                    case VehiclePropertyType.STRING:
+                        value = propValue.value.stringValue;
+                        break;
+                    case VehiclePropertyType.INT32:
+                        value = String.valueOf(propValue.value.int32Values.get(0));
+                        break;
+                    case VehiclePropertyType.FLOAT:
+                        value = String.valueOf(propValue.value.floatValues.get(0));
+                        break;
+                    default:
+                        Log.w(CarLog.TAG_INFO, "unsupported type: 0x" + toHexString(dataType));
+                }
+            }
         } catch (PropertyTimeoutException e) {
             Log.e(CarLog.TAG_INFO, "Unable to read property", e);
         }

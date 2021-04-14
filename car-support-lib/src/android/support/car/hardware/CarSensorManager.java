@@ -82,8 +82,10 @@ public abstract class CarSensorManager implements CarManagerBase {
      */
     public static final int SENSOR_TYPE_GEAR = 7;
 
-    /** @hide */
-    public static final int SENSOR_TYPE_RESERVED8 = 8;
+    /**
+     * FUEL_LEVEL_LOW
+     */
+    public static final int SENSOR_TYPE_FUEL_LEVEL_LOW = 8;
 
     /**
      * Represent the current status of the day/night sensor. Sensor data is in intValues[0].
@@ -104,20 +106,30 @@ public abstract class CarSensorManager implements CarManagerBase {
      * @hide
      */
     public static final int SENSOR_TYPE_ENVIRONMENT = 12;
-    /** @hide */
-    public static final int SENSOR_TYPE_RESERVED13 = 13;
-    /** @hide */
+    /**
+     * CURRENT_GEAR
+     */
+    public static final int SENSOR_TYPE_CURRENT_GEAR = 13;
+    /**
+     * ACCELEROMETER sensor.
+     */
     public static final int SENSOR_TYPE_ACCELEROMETER = 14;
-    /** @hide */
-    public static final int SENSOR_TYPE_RESERVED15 = 15;
-    /** @hide */
-    public static final int SENSOR_TYPE_RESERVED16 = 16;
+    /**
+     * ENGINE_COOLANT_TEMP
+     */
+    public static final int SENSOR_TYPE_ENGINE_COOLANT_TEMP = 15;
+    /**
+     * ENGINE_OIL_TEMP
+     */
+    public static final int SENSOR_TYPE_ENGINE_OIL_TEMP = 16;
     /** @hide */
     public static final int SENSOR_TYPE_GPS_SATELLITE = 17;
     /** @hide */
     public static final int SENSOR_TYPE_GYROSCOPE = 18;
-    /** @hide */
-    public static final int SENSOR_TYPE_RESERVED19 = 19;
+    /**
+     * TURN_SIGNAL_STATE
+     */
+    public static final int SENSOR_TYPE_TURN_SIGNAL_STATE = 19;
     /** @hide */
     public static final int SENSOR_TYPE_RESERVED20 = 20;
     /** @hide */

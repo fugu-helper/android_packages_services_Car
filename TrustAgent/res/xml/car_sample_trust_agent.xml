@@ -17,4 +17,5 @@
 <trust-agent xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:priv-android="http://schemas.android.com/apk/prv/res/android"
              android:settingsActivity=".MainActivity"
+             android:title="Car Ble Trust Agent"
              priv-android:unlockProfile="true" />

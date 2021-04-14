@@ -90,7 +90,7 @@ public class CarSensorManagerTest extends MockedCarTestBase {
         // NOTE:  Update this test if/when the reserved values put into use.  For now, we
         //        expect them to never be supported.
         assertFalse(mCarSensorManager.isSensorSupported(CarSensorManager.SENSOR_TYPE_RESERVED1));
-        assertFalse(mCarSensorManager.isSensorSupported(CarSensorManager.SENSOR_TYPE_RESERVED13));
+        //assertFalse(mCarSensorManager.isSensorSupported(CarSensorManager.SENSOR_TYPE_RESERVED13));
         assertFalse(mCarSensorManager.isSensorSupported(CarSensorManager.SENSOR_TYPE_RESERVED21));
 
         // We expect these sensors to always be available

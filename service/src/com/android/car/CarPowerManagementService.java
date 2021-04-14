@@ -26,6 +26,7 @@ import com.android.car.hal.PowerHalService;
 import com.android.car.hal.PowerHalService.PowerState;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
+import android.hardware.automotive.vehicle.V2_0.VehicleApPowerBootupReason;
 
 import java.io.PrintWriter;
 import java.util.LinkedList;
@@ -118,6 +119,10 @@ public class CarPowerManagementService implements CarServiceBase,
         mSystemInterface = systemInterface;
     }
 
+    public PowerHalService gethal(){
+        return mHal;
+    }
+
     /**
      * Create a dummy instance for unit testing purpose only. Instance constructed in this way
      * is not safe as members expected to be non-null are null.
@@ -139,20 +144,6 @@ public class CarPowerManagementService implements CarServiceBase,
         }
 
         mHal.setListener(this);
-        if (mHal.isPowerStateSupported()) {
-            mHal.sendBootComplete();
-            PowerState currentState = mHal.getCurrentPowerState();
-            if (currentState != null) {
-                onApPowerStateChange(currentState);
-            } else {
-                Log.w(CarLog.TAG_POWER, "Unable to get get current power state during "
-                        + "initialization");
-            }
-        } else {
-            Log.w(CarLog.TAG_POWER, "Vehicle hal does not support power state yet.");
-            onApPowerStateChange(new PowerState(PowerHalService.STATE_ON_FULL, 0));
-            mSystemInterface.switchToFullWakeLock();
-        }
         mSystemInterface.startDisplayStateMonitoring(this);
     }
 
@@ -175,6 +166,23 @@ public class CarPowerManagementService implements CarServiceBase,
         mListeners.clear();
         mPowerEventProcessingHandlers.clear();
         mSystemInterface.releaseAllWakeLocks();
+    }
+
+    public void systemReady() {
+        if (mHal.isPowerStateSupported()) {
+            mHal.sendBootComplete();
+            PowerState currentState = mHal.getCurrentPowerState();
+            if (currentState != null) {
+                onApPowerStateChange(currentState);
+            } else {
+                Log.w(CarLog.TAG_POWER, "Unable to get get current power state during "
+                        + "initialization");
+            }
+        } else {
+            Log.w(CarLog.TAG_POWER, "Vehicle hal does not support power state yet.");
+            onApPowerStateChange(new PowerState(PowerHalService.STATE_ON_FULL, 0));
+            mSystemInterface.switchToFullWakeLock();
+        }
     }
 
     /**
@@ -231,7 +239,9 @@ public class CarPowerManagementService implements CarServiceBase,
             if (mCurrentState.mState != PowerHalService.STATE_SHUTDOWN_PREPARE) {
                 return;
             }
-            if (mCurrentState.canEnterDeepSleep()) {
+
+            if (mHal.isDeepSleepAllowed() && mSystemInterface.isSystemSupportingDeepSleep() &&
+                                        mCurrentState.canEnterDeepSleep()) {
                 shouldShutdown = false;
                 if (mLastSleepEntryTime > mProcessingStartTime && mLastSleepEntryTime < now) {
                     // already slept
@@ -298,6 +308,7 @@ public class CarPowerManagementService implements CarServiceBase,
                 break;
             case PowerHalService.STATE_SHUTDOWN_PREPARE:
                 handleShutdownPrepare(state);
+                notifyPowerOn(false);
                 break;
         }
     }
@@ -406,7 +417,7 @@ public class CarPowerManagementService implements CarServiceBase,
             listener.onSleepEntry();
         }
         int wakeupTimeSec = getWakeupTime();
-        mHal.sendSleepEntry();
+        mHal.sendSleepEntry(wakeupTimeSec);
         synchronized (this) {
             mLastSleepEntryTime = SystemClock.elapsedRealtime();
         }

@@ -64,6 +64,15 @@ public class CarInfoManagerEmbedded extends CarInfoManager {
     }
 
     @Override
+    public String getFuelCapacity() throws CarNotConnectedException {
+        try {
+            return mManager.getFuelCapacity();
+        } catch (android.car.CarNotConnectedException e) {
+            throw new CarNotConnectedException(e);
+        }
+    }
+
+    @Override
     public String getHeadunitManufacturer() throws CarNotConnectedException {
         return null;
     }

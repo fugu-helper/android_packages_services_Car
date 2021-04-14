@@ -63,7 +63,11 @@ public final class CarInfoManager implements CarManagerBase {
      */
     @ValueTypeDef(type = String.class)
     public static final String BASIC_INFO_KEY_VEHICLE_ID = "android.car.vehicle-id";
-
+    /**
+     * Fuel capacity.
+     */
+    @ValueTypeDef(type = Float.class)
+    public static final String KEY_FUEL_CAPACITY = "android.car.fuel-capacity";
     /**
      * Key for product configuration info.
      * @FutureFeature Cannot drop due to usage in non-flag protected place.
@@ -127,6 +131,14 @@ public final class CarInfoManager implements CarManagerBase {
      */
     public String getVehicleId() throws CarNotConnectedException {
         return getBasicInfo().getString(BASIC_INFO_KEY_VEHICLE_ID);
+    }
+
+    /**
+     * Return the fuel capacity.
+     * @return null if information is not available.
+     */
+    public String getFuelCapacity() throws CarNotConnectedException {
+        return getBasicInfo().getString(KEY_FUEL_CAPACITY);
     }
 
     /**

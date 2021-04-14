@@ -17,6 +17,7 @@ package com.android.car.hal;
 
 import static android.hardware.automotive.vehicle.V2_0.VehicleProperty.AP_POWER_STATE;
 import static android.hardware.automotive.vehicle.V2_0.VehicleProperty.DISPLAY_BRIGHTNESS;
+import static android.hardware.automotive.vehicle.V2_0.VehicleProperty.AP_POWER_BOOTUP_REASON;
 
 import android.annotation.Nullable;
 import android.hardware.automotive.vehicle.V2_0.VehicleApPowerSetState;
@@ -168,9 +169,9 @@ public class PowerHalService extends HalServiceBase {
         setPowerState(VehicleApPowerSetState.BOOT_COMPLETE, 0);
     }
 
-    public void sendSleepEntry() {
+    public void sendSleepEntry(int wakeupTimeSec) {
         Log.i(CarLog.TAG_POWER, "send sleep entry");
-        setPowerState(VehicleApPowerSetState.DEEP_SLEEP_ENTRY, 0);
+        setPowerState(VehicleApPowerSetState.DEEP_SLEEP_ENTRY, wakeupTimeSec);
     }
 
     public void sendSleepExit() {
@@ -186,7 +187,7 @@ public class PowerHalService extends HalServiceBase {
 
     public void sendShutdownStart(int wakeupTimeSec) {
         Log.i(CarLog.TAG_POWER, "send shutdown start");
-        setPowerState(VehicleApPowerSetState.SHUTDOWN_START, 0);
+        setPowerState(VehicleApPowerSetState.SHUTDOWN_START, wakeupTimeSec);
     }
 
     public void sendDisplayOn() {
@@ -243,6 +244,17 @@ public class PowerHalService extends HalServiceBase {
         }
         return (config.configArray.get(0)
                 & VehicleApPowerStateConfigFlag.CONFIG_SUPPORT_TIMER_POWER_ON_FLAG) != 0;
+    }
+
+    public synchronized int getBootupReason() {
+        int state;
+        try {
+            state = mHal.get(int.class, VehicleProperty.AP_POWER_BOOTUP_REASON);
+        } catch (PropertyTimeoutException e) {
+            Log.e(CarLog.TAG_POWER, "Cannot get AP_POWER_BOOTUP_REASON", e);
+            return -1;
+        }
+        return state;
     }
 
     @Override

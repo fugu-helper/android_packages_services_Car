@@ -23,6 +23,13 @@ import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
+import java.io.File;
+import java.io.IOException;
+import android.os.FileUtils;
+import com.android.car.CarPowerManagementService;
+import com.android.car.hal.PowerHalService;
+import android.hardware.automotive.vehicle.V2_0.VehicleApPowerBootupReason;
+import static android.hardware.automotive.vehicle.V2_0.VehicleProperty.AP_POWER_BOOTUP_REASON;
 
 /**
  * Interface to abstract all system interaction.
@@ -109,12 +116,33 @@ public abstract class SystemInterface {
             mPowerManager.goToSleep(SystemClock.uptimeMillis(),
                     PowerManager.GO_TO_SLEEP_REASON_DEVICE_ADMIN,
                     PowerManager.GO_TO_SLEEP_FLAG_NO_DOZE);
+
+            // force sleep entry even if wake lock is kept
+            try {
+                FileUtils.stringToFile("/sys/power/state", "mem");
+            } catch (IOException e) {
+                Log.e(CarLog.TAG_POWER, "IOException: " + e);
+            }
+
         }
 
         @Override
         public boolean isSystemSupportingDeepSleep() {
             //TODO should return by checking some kernel suspend control sysfs, bug: 32061842
-            return false;
+
+        File stateFile = new File("/sys/power/state");
+            if (stateFile.exists()) {
+                try {
+                    String state = FileUtils.readTextFile(stateFile, 0, null);
+                    if (state.contains("mem")) {
+                        return true;
+                    }
+                } catch (IOException e) {
+                    Log.e(CarLog.TAG_POWER, "IOException: " + e);
+                }
+            }
+
+           return false;
         }
 
         @Override
@@ -153,6 +181,10 @@ public abstract class SystemInterface {
             // come from kernel. it can be either power on or wake up for maintenance
             // power on will involve GPIO trigger from power controller
             // its own wakeup will involve timer expiration.
+            if (mService.gethal().getBootupReason() ==
+                VehicleApPowerBootupReason.TIMER) {
+                return true;
+            }
             return false;
         }
 

@@ -279,7 +279,7 @@ public class GarageModeService implements CarServiceBase,
             next.set(Calendar.SECOND, 0);
 
             Calendar now = Calendar.getInstance();
-            return (next.get(Calendar.MILLISECOND) - now.get(Calendar.MILLISECOND)) / 1000;
+            return (int)((next.getTimeInMillis() - now.getTimeInMillis()) / 1000);
         }
     }
 

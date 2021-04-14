@@ -56,6 +56,8 @@ import java.util.List;
 
 public class KitchenSinkActivity extends CarDrawerActivity {
     private static final String TAG = "KitchenSinkActivity";
+    private static final String CLASSNAME = "CLASSNAME";
+    private static final String FRAGMENTS = "android:support:fragments";
 
     private interface ClickHandler {
         void onClick();
@@ -166,6 +168,7 @@ public class KitchenSinkActivity extends CarDrawerActivity {
     private CarHvacManager mHvacManager;
     private CarSensorManager mCarSensorManager;
     private CarAppFocusManager mCarAppFocusManager;
+    private String restartFragmentClassName = "";
 
     private final CarSensorManager.OnSensorChangedListener mListener = (manager, event) -> {
         switch (event.sensorType) {
@@ -186,6 +189,14 @@ public class KitchenSinkActivity extends CarDrawerActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(CLASSNAME)) {
+            // Do not recover the fragment from AMS. Set the fragments of activity are null.
+            savedInstanceState.putParcelable(FRAGMENTS, null);
+            // Get the class name of fragment and restart it later.
+            // Ensure fragment used the car service which is connected in advance.
+            restartFragmentClassName = savedInstanceState.getString(CLASSNAME);
+        }
+
         super.onCreate(savedInstanceState);
         setMainContent(R.layout.kitchen_content);
         // Connection to Car Service does not work for non-automotive yet.
@@ -238,6 +249,25 @@ public class KitchenSinkActivity extends CarDrawerActivity {
         Log.i(TAG, "onDestroy");
     }
 
+    /**
+     * Fix a bug:
+     * When the activity is restarting by AMS due to the night mode changed on CANBOX.
+     * The current fragment will be restored immediately. But currently the car service is not connected in OnCreate().
+     * It need connect for a while. Avoiding current fragment used the non-connected car service.
+     * Override this onSaveInstanceState() function to save the class name of fragment and restart it later.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.kitchen_content);
+        if (fragment != null) {
+            // If there is one fragment existed when the activity is stopping by AMS. Do not recover it from AMS.
+            // Just save the class name and restart it later.
+            Log.i(TAG, CLASSNAME + " = " + fragment.getClass().getName());
+            outState.putString(CLASSNAME, fragment.getClass().getName());
+        }
+        super.onSaveInstanceState(outState);
+    }
+
     private void showFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.kitchen_content, fragment)
@@ -257,6 +287,14 @@ public class KitchenSinkActivity extends CarDrawerActivity {
                         CarSensorManager.SENSOR_RATE_NORMAL);
                 mCarAppFocusManager =
                         (CarAppFocusManager) mCarApi.getCarManager(Car.APP_FOCUS_SERVICE);
+
+                // Restart the fragment after car service is connected.
+                if (!restartFragmentClassName.isEmpty()) {
+                   Log.i(TAG, "restartFragmentClassName = " + restartFragmentClassName);
+                   Fragment fragement = Fragment.instantiate(KitchenSinkActivity.this, restartFragmentClassName);
+                   showFragment(fragement);
+                   restartFragmentClassName = "";
+                }
             } catch (CarNotConnectedException e) {
                 Log.e(TAG, "Car is not connected!", e);
             }

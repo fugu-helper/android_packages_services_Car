@@ -283,7 +283,13 @@ public class HvacTestFragment extends Fragment {
         mZoneForAcOn = prop.getFirstAndOnlyAreaId();
         mTbAc = (ToggleButton)v.findViewById(R.id.tbAc);
         mTbAc.setEnabled(true);
-
+        Boolean acState = false;
+        try {
+            acState = mCarHvacManager.getBooleanProperty(CarHvacManager.ID_ZONED_AC_ON, mZoneForAcOn);
+        } catch (CarNotConnectedException e) {
+            Log.e(TAG, "Failed to get HVAC boolean property", e);
+        }
+        mTbAc.setChecked(acState);
         mTbAc.setOnClickListener(view -> {
             // TODO handle zone properly
             try {
@@ -555,7 +561,14 @@ public class HvacTestFragment extends Fragment {
         int temp = prop.getFirstAndOnlyAreaId();
         mTbRecirc = (ToggleButton)v.findViewById(R.id.tbRecirc);
         mTbRecirc.setEnabled(true);
-
+        Boolean recircState = false;
+        try {
+            recircState = mCarHvacManager.getBooleanProperty(CarHvacManager.ID_ZONED_AIR_RECIRCULATION_ON,
+                    temp);
+        } catch (CarNotConnectedException e) {
+            Log.e(TAG, "Failed to get HVAC boolean property", e);
+        }
+        mTbRecirc.setChecked(recircState);
         mTbRecirc.setOnClickListener(view -> {
             // TODO handle zone properly
             try {

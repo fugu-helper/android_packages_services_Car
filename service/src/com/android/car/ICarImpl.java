@@ -153,6 +153,15 @@ public class ICarImpl extends ICar.Stub {
         for (CarServiceBase service : mAllServices) {
             service.init();
         }
+
+        /* w/a for GarageMode cannot work when system boot up from S5 state.
+         * CarPowerManagementService was initilized before GarageModeService, when CarPowerManagementService
+         * handling PREPARE_SHOTDOWN messges, GarageModeService was not registered to CarPowerManagementService,
+         * Wake up time will not set down and system will sleep forever at this condition.
+         *
+         * Send BOOT_COMPLETE to VHAL after GarageModeService initilized to fix this issue.
+         */
+        mCarPowerManagementService.systemReady();
         traceEnd();
     }
 

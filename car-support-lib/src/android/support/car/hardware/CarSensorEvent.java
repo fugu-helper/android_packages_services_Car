@@ -291,6 +291,32 @@ public class CarSensorEvent {
     }
 
     /**
+     * Indicates if the fuel level is low.
+     */
+    public static class FuelLevelLowData {
+        /** The time in nanoseconds since system boot. */
+        public final long timestamp;
+        /** Returns {@code true} if the system is in night mode. */
+        public final boolean isFuelLevelLow;
+
+        public FuelLevelLowData(long timestamp, boolean isFuelLevelLow) {
+            this.timestamp = timestamp;
+            this.isFuelLevelLow = isFuelLevelLow;
+        }
+    }
+
+    /**
+     * Convenience method for obtaining a {@link FuelLevelLowData} object from a CarSensorEvent
+     * object with type {@link CarSensorManager#SENSOR_TYPE_FUEL_LEVEL_LOW}.
+     *
+     * @return A FuelLevelLowData object corresponding to the data contained in the CarSensorEvent.
+     */
+    public FuelLevelLowData getFuelLevelLowData() {
+        checkType(CarSensorManager.SENSOR_TYPE_FUEL_LEVEL_LOW);
+        return new FuelLevelLowData(timestamp, (intValues[0] == 1));
+    }
+
+    /**
      * Indicates the restrictions in effect based on the status of the vehicle. See
      * {@link #getDrivingStatusData()}.
      */
@@ -587,6 +613,30 @@ public class CarSensorEvent {
     }
 
     /** @hide */
+    public static class CurrentGearData {
+        /** The time in nanoseconds since system boot. */
+        public final long timestamp;
+        public final int currentGear;
+
+        public CurrentGearData(long timestamp, int gear) {
+            this.timestamp = timestamp;
+            this.currentGear = gear;
+        }
+    }
+
+    /**
+     * Convenience method for obtaining a {@link GearData} object from a CarSensorEvent
+     * object with type {@link CarSensorManager#SENSOR_TYPE_CURRENT_GEAR}.
+     *
+     * @return a GearData object corresponding to the data contained in the CarSensorEvent.
+     * @hide
+     */
+    public CurrentGearData getCurrentGearData() {
+        checkType(CarSensorManager.SENSOR_TYPE_CURRENT_GEAR);
+        return new CurrentGearData(timestamp,intValues[0] );
+    }
+
+    /** @hide */
     public static class FuelLevelData {
         /** The time in nanoseconds since system boot. */
         public final long timestamp;
@@ -681,6 +731,75 @@ public class CarSensorEvent {
     public RpmData getRpmData() {
         checkType(CarSensorManager.SENSOR_TYPE_RPM);
         return new RpmData(timestamp, floatValues[0]);
+    }
+
+    public static class EngineCoolantTemperatureData {
+        public long timestamp;
+        public float engineCoolantTemperature;
+
+        public EngineCoolantTemperatureData(long timestamp, float temperature) {
+            this.timestamp = timestamp;
+            this.engineCoolantTemperature = temperature;
+        }
+    }
+
+    /**
+     * Convenience method for obtaining a {@link EngineCoolantTemperatureData} object from a CarSensorEvent
+     * object with type {@link CarSensorManager#SENSOR_TYPE_ENGINE_COOLANT_TEMP}.
+     *
+     * @param data an optional output parameter which, if non-null, will be used by this method
+     *     instead of a newly created object.
+     * @return a EngineCoolantTemperatureData object corresponding to the data contained in the CarSensorEvent.
+     */
+    public EngineCoolantTemperatureData getEngineCoolantTemperatureData() {
+        checkType(CarSensorManager.SENSOR_TYPE_ENGINE_COOLANT_TEMP);
+        return new EngineCoolantTemperatureData(timestamp, floatValues[0]);
+    }
+
+    public static class EngineOilTemperatureData {
+        public long timestamp;
+        public float engineOilTemperature;
+
+        public EngineOilTemperatureData(long timestamp, float temperature) {
+            this.timestamp = timestamp;
+            this.engineOilTemperature = temperature;
+        }
+    }
+
+    /**
+     * Convenience method for obtaining a {@link EngineOilTemperatureData} object from a CarSensorEvent
+     * object with type {@link CarSensorManager#SENSOR_TYPE_ENGINE_OIL_TEMP}.
+     *
+     * @param data an optional output parameter which, if non-null, will be used by this method
+     *     instead of a newly created object.
+     * @return a EngineOilTemperatureData object corresponding to the data contained in the CarSensorEvent.
+     */
+    public EngineOilTemperatureData getEngineOilTemperatureData() {
+        checkType(CarSensorManager.SENSOR_TYPE_ENGINE_OIL_TEMP);
+        return new EngineOilTemperatureData(timestamp, floatValues[0]);
+    }
+
+    public static class TurnSignalStateData {
+        public long timestamp;
+        public int turnSignalState;
+
+        public TurnSignalStateData(long timestamp, int state) {
+            this.timestamp = timestamp;
+            this.turnSignalState = state;
+        }
+    }
+
+    /**
+     * Convenience method for obtaining a {@link TurnSignalStateData} object from a CarSensorEvent
+     * object with type {@link CarSensorManager#SENSOR_TYPE_TURN_SIGNAL_STATE}.
+     *
+     * @param data an optional output parameter which, if non-null, will be used by this method
+     *     instead of a newly created object.
+     * @return a TurnSignalStateData object corresponding to the data contained in the CarSensorEvent.
+     */
+    public TurnSignalStateData getTurnSignalStateData() {
+        checkType(CarSensorManager.SENSOR_TYPE_TURN_SIGNAL_STATE);
+        return new TurnSignalStateData(timestamp, intValues[0]);
     }
 
     /** @hide */

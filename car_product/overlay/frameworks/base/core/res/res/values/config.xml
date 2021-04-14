@@ -38,6 +38,10 @@
           true, day / night mode change is only allowed to apps with MODIFY_DAY_NIGHT_MODE
           permission. -->
     <bool name="config_lockDayNightMode">true</bool>
+
+    <!-- Don't support split screen multiwindow -->
+    <bool name="config_supportsSplitScreenMultiWindow">false</bool>
+
     <!-- Allow smart unlock immediately after boot because the user shouldn't have to enter a pin
          code to unlock their car head unit. -->
     <bool name="config_strongAuthRequiredOnBoot">false</bool>

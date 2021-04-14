@@ -53,9 +53,9 @@ public class MockedPowerHalService extends PowerHalService {
     }
 
     @Override
-    public void sendSleepEntry() {
+    public void sendSleepEntry(int wakeupTimeSec) {
         Log.i(TAG, "sendSleepEntry");
-        doSendState(SET_DEEP_SLEEP_ENTRY, 0);
+        doSendState(SET_DEEP_SLEEP_ENTRY, wakeupTimeSec);
     }
 
     @Override

@@ -23,6 +23,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.support.car.CarInfoManager;
 import android.support.car.CarNotConnectedException;
 import android.support.car.hardware.CarSensorConfig;
 import android.support.car.hardware.CarSensorEvent;
@@ -55,8 +57,8 @@ public class SensorsTestFragment extends Fragment {
     private static final int KS_PERMISSIONS_REQUEST = 1;
 
     private final static String[] REQUIRED_PERMISSIONS = new String[]{
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
+//        Manifest.permission.ACCESS_FINE_LOCATION,
+//        Manifest.permission.ACCESS_COARSE_LOCATION,
         Car.PERMISSION_MILEAGE,
         Car.PERMISSION_FUEL,
         Car.PERMISSION_SPEED,
@@ -73,7 +75,9 @@ public class SensorsTestFragment extends Fragment {
                     synchronized (SensorsTestFragment.this) {
                         mEventMap.put(event.sensorType, event);
                     }
-                    refreshUi();
+                    if (getContext() != null) {
+                        refreshUi();
+                    }
                 }
             };
     private final Handler mHandler = new Handler();
@@ -81,9 +85,11 @@ public class SensorsTestFragment extends Fragment {
     private final DateFormat mDateFormat = SimpleDateFormat.getDateTimeInstance();
 
     private KitchenSinkActivity mActivity;
+    private TextView mCarInfo;
     private TextView mSensorInfo;
     private Car mCar;
     private CarSensorManager mSensorManager;
+    private CarInfoManager mCarInfoManager;
     private String mNaString;
     private int[] supportedSensors = new int[0];
     private Set<String> mActivePermissions = new HashSet<String>();
@@ -100,6 +106,7 @@ public class SensorsTestFragment extends Fragment {
         View view = inflater.inflate(R.layout.sensors, container, false);
         mActivity = (KitchenSinkActivity) getHost();
 
+        mCarInfo = (TextView) view.findViewById(R.id.car_info);
         mSensorInfo = (TextView) view.findViewById(R.id.sensor_info);
         mNaString = getContext().getString(R.string.sensor_na);
 
@@ -122,6 +129,8 @@ public class SensorsTestFragment extends Fragment {
 
     private void initSensors() {
         try {
+            mCarInfoManager = (CarInfoManager)
+                    mActivity.getCar().getCarManager(Car.INFO_SERVICE);
             mSensorManager = (CarSensorManager)
                     mActivity.getCar().getCarManager(Car.SENSOR_SERVICE);
             supportedSensors = mSensorManager.getSupportedSensors();
@@ -192,6 +201,16 @@ public class SensorsTestFragment extends Fragment {
                     case CarSensorManager.SENSOR_TYPE_COMPASS:
                         summary.add(getCompassString(event));
                         break;
+                    /*case CarSensorManager.SENSOR_TYPE_ENGINE_COOLANT_TEMP:
+                        summary.add(getContext().getString(R.string.sensor_coolant_temperature,
+                                getTimestamp(event),
+                                event == null ? mNaString : event.getEngineCoolantTemperatureData().engineCoolantTemperature));
+                        break;*/
+                    case CarSensorManager.SENSOR_TYPE_ENGINE_OIL_TEMP:
+                        summary.add(getContext().getString(R.string.sensor_oil_temperature,
+                                getTimestamp(event),
+                                event == null ? mNaString : event.getEngineOilTemperatureData().engineOilTemperature));
+                        break;
                     case CarSensorManager.SENSOR_TYPE_CAR_SPEED:
                         summary.add(getContext().getString(R.string.sensor_speed,
                                 getTimestamp(event),
@@ -202,11 +221,11 @@ public class SensorsTestFragment extends Fragment {
                                 getTimestamp(event),
                                 event == null ? mNaString : event.getRpmData().rpm));
                         break;
-                    case CarSensorManager.SENSOR_TYPE_ODOMETER:
+                    /*case CarSensorManager.SENSOR_TYPE_ODOMETER:
                         summary.add(getContext().getString(R.string.sensor_odometer,
                                 getTimestamp(event),
                                 event == null ? mNaString : event.getOdometerData().kms));
-                        break;
+                        break;*/
                     case CarSensorManager.SENSOR_TYPE_FUEL_LEVEL:
                         String level = mNaString;
                         String range = mNaString;
@@ -231,13 +250,28 @@ public class SensorsTestFragment extends Fragment {
                                 getTimestamp(event),
                                 event == null ? mNaString : event.getGearData().gear));
                         break;
+                    case CarSensorManager.SENSOR_TYPE_CURRENT_GEAR:
+                        summary.add(getContext().getString(R.string.sensor_current_gear,
+                                getTimestamp(event),
+                                event == null ? mNaString : event.getCurrentGearData().currentGear));
+                        break;
+                    case CarSensorManager.SENSOR_TYPE_TURN_SIGNAL_STATE:
+                        summary.add(getContext().getString(R.string.sensor_turn_signal_state,
+                                getTimestamp(event),
+                                event == null ? mNaString : event.getTurnSignalStateData().turnSignalState));
+                        break;
                     case CarSensorManager.SENSOR_TYPE_NIGHT:
                         summary.add(getContext().getString(R.string.sensor_night,
                                 getTimestamp(event),
                                 event == null ? mNaString : event.getNightData().isNightMode));
                         break;
-                    case CarSensorManager.SENSOR_TYPE_LOCATION:
+                    /*case CarSensorManager.SENSOR_TYPE_LOCATION:
                         summary.add(getLocationString(event));
+                        break;*/
+                    case CarSensorManager.SENSOR_TYPE_FUEL_LEVEL_LOW:
+                        summary.add(getContext().getString(R.string.sensor_fuel_level_low,
+                                getTimestamp(event),
+                                event == null ? mNaString : event.getFuelLevelLowData().isFuelLevelLow));
                         break;
                     case CarSensorManager.SENSOR_TYPE_DRIVING_STATUS:
                         String drivingStatus = mNaString;
@@ -267,9 +301,9 @@ public class SensorsTestFragment extends Fragment {
                     case CarSensorManager.SENSOR_TYPE_ACCELEROMETER:
                         summary.add(getAccelerometerString(event));
                         break;
-                    case CarSensorManager.SENSOR_TYPE_GPS_SATELLITE:
+                    /*case CarSensorManager.SENSOR_TYPE_GPS_SATELLITE:
                         summary.add(getGpsSatelliteString(event));
-                        break;
+                        break;*/
                     case CarSensorManager.SENSOR_TYPE_GYROSCOPE:
                         summary.add(getGyroscopeString(event));
                         break;
@@ -322,16 +356,33 @@ public class SensorsTestFragment extends Fragment {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
+                showCarInfo();
                 mSensorInfo.setText(summaryString);
             }
         });
+    }
+
+    private void showCarInfo() {
+        if ((mCarInfo != null) && (mCarInfoManager != null)) {
+            try {
+                final String str = "Car Info: VID=" + mCarInfoManager.getVehicleId()
+                        + ", MAKE=" + mCarInfoManager.getManufacturer()
+                        + ", MODEL=" + mCarInfoManager.getModel()
+                        + ", YEAR=" + mCarInfoManager.getModelYear()
+                        + ", FUEL_CAPACITY=" + String.valueOf(mCarInfoManager.getFuelCapacity()) + "gal";
+                mCarInfo.setText(str);
+            } catch (IllegalArgumentException e) {
+            } catch (CarNotConnectedException e) {
+            }
+        }
     }
 
     private String getTimestamp(CarSensorEvent event) {
         if (event == null) {
             return mNaString;
         }
-        return mDateFormat.format(new Date(event.timestamp / 1000L));
+        final long date = System.currentTimeMillis() - SystemClock.elapsedRealtime() + (event.timestamp / 1000000L);
+        return mDateFormat.format(new Date(date));
     }
 
     private String getCompassString(CarSensorEvent event) {
